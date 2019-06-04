@@ -30,7 +30,7 @@ pub struct PlotterTask {
     pub numeric_id: u64,
     pub start_nonce: u64,
     pub nonces: u64,
-    pub nskip: usize,
+    pub njump: usize,
     pub output_path: String,
     pub mem: String,
     pub cpu_threads: u8,
@@ -114,7 +114,7 @@ impl Plotter {
         let plotsize = task.nonces * NONCE_SIZE;
 
 	    let file;
-        if task.nskip == 1{
+        if task.njump == 1{
             file = Path::new(&task.output_path).join(format!(
                 "{}_{}_{}",
                 task.numeric_id, task.start_nonce, task.nonces
@@ -123,7 +123,7 @@ impl Plotter {
         else {
             file = Path::new(&task.output_path).join(format!(
                 "{}_{}_{}_{}",
-                task.numeric_id, task.start_nonce, task.nonces, task.nskip
+                task.numeric_id, task.start_nonce, task.nonces, task.njump
             ));
         }
 
@@ -138,7 +138,7 @@ impl Plotter {
         }
 
         // check available disk space
-        if free_disk_space < plotsize / (task.nskip as u64) && !file.exists() && !task.benchmark {
+        if free_disk_space < plotsize / (task.njump as u64) && !file.exists() && !task.benchmark {
             println!(
                 "Error: insufficient disk space, MiB_required={:.2}, MiB_available={:.2}",
                 plotsize as f64 / 1024.0 / 1024.0,
@@ -210,7 +210,7 @@ impl Plotter {
                 print!("Fast file pre-allocation...");
             }
             if !task.benchmark {
-                preallocate(&file, plotsize/(task.nskip as u64), task.direct_io);
+                preallocate(&file, plotsize/(task.njump as u64), task.direct_io);
                 if write_resume_info(&file, 0u64).is_err() {
                     println!("Error: couldn't write resume info");
                 }
