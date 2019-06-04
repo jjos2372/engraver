@@ -97,6 +97,14 @@ fn main() {
                         .takes_value(true)
                         .required_unless("ocl-devices"),
                 ).arg(
+                    Arg::with_name("nskip")
+                        .short("k")
+                        .long("nskip")
+                        .value_name("nskip")
+                        .help("how many scoops you want to skip")
+                        .takes_value(true)
+                        .required(false),
+                ).arg(
                     Arg::with_name("path")
                         .short("p")
                         .long("path")
@@ -207,6 +215,8 @@ fn main() {
     let numeric_id = value_t!(matches, "numeric id", u64).unwrap_or_else(|e| e.exit());
     let start_nonce = value_t!(matches, "start nonce", u64).unwrap_or_else(|e| e.exit());
     let nonces = value_t!(matches, "nonces", u64).unwrap_or_else(|e| e.exit());
+    let nskip = value_t!(matches, "nskip", usize).unwrap_or(1);
+
     let output_path = value_t!(matches, "path", String).unwrap_or_else(|_| {
         std::env::current_dir()
             .unwrap()
@@ -245,6 +255,7 @@ fn main() {
         numeric_id,
         start_nonce,
         nonces,
+        nskip,
         output_path,
         mem,
         cpu_threads,

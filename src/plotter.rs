@@ -30,6 +30,7 @@ pub struct PlotterTask {
     pub numeric_id: u64,
     pub start_nonce: u64,
     pub nonces: u64,
+    pub nskip: usize,
     pub output_path: String,
     pub mem: String,
     pub cpu_threads: u8,
@@ -112,10 +113,20 @@ impl Plotter {
 
         let plotsize = task.nonces * NONCE_SIZE;
 
-        let file = Path::new(&task.output_path).join(format!(
-            "{}_{}_{}",
-            task.numeric_id, task.start_nonce, task.nonces
-        ));
+	    let file;
+        if task.nskip == 1{
+            file = Path::new(&task.output_path).join(format!(
+                "{}_{}_{}",
+                task.numeric_id, task.start_nonce, task.nonces
+            ));
+        }
+        else {
+            file = Path::new(&task.output_path).join(format!(
+                "{}_{}_{}_{}",
+                task.numeric_id, task.start_nonce, task.nonces, task.nskip
+            ));
+        }
+
 
         if !file.parent().unwrap().exists() {
             println!(
@@ -199,7 +210,7 @@ impl Plotter {
                 print!("Fast file pre-allocation...");
             }
             if !task.benchmark {
-                preallocate(&file, plotsize, task.direct_io);
+                preallocate(&file, plotsize/(task.nskip as u64), task.direct_io);
                 if write_resume_info(&file, 0u64).is_err() {
                     println!("Error: couldn't write resume info");
                 }

@@ -23,10 +23,19 @@ pub fn create_writer_thread(
             let buffer_size = (*bs).len() as u64;
             let nonces_to_write = min(buffer_size / NONCE_SIZE, task.nonces - nonces_written);
 
-            let filename = Path::new(&task.output_path).join(format!(
-                "{}_{}_{}",
-                task.numeric_id, task.start_nonce, task.nonces
-            ));
+            let filename;
+            if task.nskip == 1{
+                filename = Path::new(&task.output_path).join(format!(
+                    "{}_{}_{}",
+                    task.numeric_id, task.start_nonce, task.nonces
+                ));
+            }
+            else {
+                filename = Path::new(&task.output_path).join(format!(
+                    "{}_{}_{}_{}",
+                    task.numeric_id, task.start_nonce, task.nonces, task.nskip
+                ));
+            }
             if !task.benchmark {
                 let file = if task.direct_io {
                     open_using_direct_io(&filename)
@@ -36,9 +45,10 @@ pub fn create_writer_thread(
 
                 let mut file = file.unwrap();
 
-                for scoop in 0..4096 {
-                    let mut seek_addr = scoop * task.nonces as u64 * SCOOP_SIZE;
-                    seek_addr += nonces_written as u64 * SCOOP_SIZE;
+                for scoop in (0..4096).step_by(task.nskip) {
+
+                    let mut seek_addr = scoop * task.nonces as u64 * SCOOP_SIZE / (task.nskip as u64);
+                    seek_addr += nonces_written as u64 * SCOOP_SIZE / (task.nskip as u64);
 
                     file.seek(SeekFrom::Start(seek_addr)).unwrap();
 
