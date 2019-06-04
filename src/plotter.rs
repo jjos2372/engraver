@@ -138,7 +138,7 @@ impl Plotter {
         }
 
         // check available disk space
-        if free_disk_space < plotsize && !file.exists() && !task.benchmark {
+        if free_disk_space < plotsize / (task.nskip as u64) && !file.exists() && !task.benchmark {
             println!(
                 "Error: insufficient disk space, MiB_required={:.2}, MiB_available={:.2}",
                 plotsize as f64 / 1024.0 / 1024.0,
