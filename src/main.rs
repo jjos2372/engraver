@@ -24,6 +24,8 @@ use clap::ArgGroup;
 use clap::{App, Arg};
 use std::cmp::min;
 
+pub const NUM_SCOOPS: u64 = 4096;
+
 fn main() {
     let arg = App::new("Engraver")
         .version(crate_version!())
@@ -215,7 +217,11 @@ fn main() {
     let numeric_id = value_t!(matches, "numeric id", u64).unwrap_or_else(|e| e.exit());
     let start_nonce = value_t!(matches, "start nonce", u64).unwrap_or_else(|e| e.exit());
     let nonces = value_t!(matches, "nonces", u64).unwrap_or_else(|e| e.exit());
-    let njump = value_t!(matches, "njump", usize).unwrap_or(1);
+    let mut njump = value_t!(matches, "njump", usize).unwrap_or(1);
+    // make NUM_SCOOPS divisible by njump
+    while NUM_SCOOPS % (njump as u64) != 0 {
+        njump = njump+1;
+    }
 
     let output_path = value_t!(matches, "path", String).unwrap_or_else(|_| {
         std::env::current_dir()
